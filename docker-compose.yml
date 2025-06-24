@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  people-detector:
+    build: .
+    container_name: people-detection
+    volumes:
+      # Монтируем папку с видео
+      - ./input:/app/input:ro
+      # Монтируем папку для результатов
+      - ./output:/app/output
+      # Монтируем папку для моделей (кэш)
+      - ./models:/root/.cache/ultralytics
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Пример запуска с параметрами
+    command: [
+      "--input", "/app/input/crowd.mp4",
+      "--output", "/app/output/result.mp4",
+      "--confidence", "0.3"
+    ]
+
+  # Сервис для анализа результатов
+  analyzer:
+    build: .
+    container_name: people-analyzer
+    volumes:
+      - ./input:/app/input:ro
+      - ./models:/root/.cache/ultralytics
+    environment:
+      - PYTHONUNBUFFERED=1
+    entrypoint: ["python", "analitics.py"]
+    profiles: ["analysis"]  # Запускается отдельно
